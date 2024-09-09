@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@useparagon/connect": "^1.0.17",
     "vue": "^3.4.29"
   },
   "devDependencies": {
