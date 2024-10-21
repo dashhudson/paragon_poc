@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@useparagon/connect": "^1.0.17",
-    "jose": "^5.9.3",
     "vue": "^3.4.29"
   },
   "devDependencies": {

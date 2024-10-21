@@ -1,7 +1,6 @@
 <script setup>
 import { paragon } from '@useparagon/connect';
 import { ref } from 'vue';
-import {importPKCS8, SignJWT} from 'jose';
 
 /*
 API References:
@@ -9,23 +8,9 @@ API References:
   - Outlook: https://learn.microsoft.com/en-us/graph/api/resources/calendar?view=graph-rest-1.0
  */
 
-const JWT_SIGNING_ALGORITHM = 'RS256';
-
 const userInfo = ref(null);
-const userId = ref('1');
-const privateKey = ref(null);
 const userToken = ref(null);
 const threads = ref(null);
-
-async function generateUserToken() {
-  const pk = await importPKCS8(privateKey.value, JWT_SIGNING_ALGORITHM);
-  userToken.value = await new SignJWT()
-    .setProtectedHeader({ alg: JWT_SIGNING_ALGORITHM })
-    .setIssuedAt()
-    .setSubject(userId.value)
-    .setExpirationTime('1d')
-    .sign(pk);
-}
 
 async function connect(service) {
   await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
@@ -58,17 +43,8 @@ async function getThreadsByAddress(address) {
 
 <template>
   <div>
-    User ID:
-    <input type="text" v-model="userId" />
-  </div>
-  <div>
-    Private Key:
-    <textarea rows="8" placeholder="Generate in Paragon" v-model="privateKey" />
-  </div>
-  <button @click="generateUserToken" :disabled="!userId || !privateKey">Generate User Token</button>
-  <div>
     User Token:
-    <input type="text" v-model="userToken" disabled />
+    <input type="text" v-model="userToken" />
   </div>
   <hr>
   <div>
