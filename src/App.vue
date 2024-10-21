@@ -48,8 +48,8 @@ async function getThreadsByAddress(address) {
   </div>
   <hr>
   <div>
-    <button @click="connect('gmail')">Connect Gmail</button>
-    <button @click="connect('outlook')">Connect Outlook</button>
+    <button @click="connect('gmail')" :disabled="!userToken">Connect Gmail</button>
+    <button @click="connect('outlook')" :disabled="!userToken">Connect Outlook</button>
   </div>
   <hr>
   <div>
@@ -63,8 +63,8 @@ async function getThreadsByAddress(address) {
   </div>
   <hr>
   <div>
-    <button @click="disconnect('gmail')">Disconnect Gmail</button>
-    <button @click="disconnect('outlook')">Disconnect Outlook</button>
+    <button @click="disconnect('gmail')" :disabled="!userToken">Disconnect Gmail</button>
+    <button @click="disconnect('outlook')" :disabled="!userToken">Disconnect Outlook</button>
   </div>
 </template>
 
