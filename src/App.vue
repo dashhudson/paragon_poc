@@ -1,10 +1,95 @@
 <script setup>
 import { paragon } from '@useparagon/connect';
+import { ref } from 'vue';
+import {importPKCS8, SignJWT} from 'jose';
 
+/*
+API References:
+  - Gmail: https://developers.google.com/gmail/api/reference/rest
+  - Outlook: https://learn.microsoft.com/en-us/graph/api/resources/calendar?view=graph-rest-1.0
+ */
+
+const JWT_SIGNING_ALGORITHM = 'RS256';
+
+const userInfo = ref(null);
+const userId = ref('1');
+const privateKey = ref(null);
+const userToken = ref(null);
+const threads = ref(null);
+
+async function generateUserToken() {
+  const pk = await importPKCS8(privateKey.value, JWT_SIGNING_ALGORITHM);
+  userToken.value = await new SignJWT()
+    .setProtectedHeader({ alg: JWT_SIGNING_ALGORITHM })
+    .setIssuedAt()
+    .setSubject(userId.value)
+    .setExpirationTime('1d')
+    .sign(pk);
+}
+
+async function connect(service) {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  await paragon.connect(service, {
+    onSuccess: () => {console.log('success!')},
+    onError: (error) => {console.error(error);}
+  });
+}
+
+async function disconnect(service) {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  await paragon.uninstallIntegration(service, {
+    onSuccess: () => {console.log('success!')},
+    onError: (error) => {console.error(error);}
+  });
+}
+
+async function getUserInfo() {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  userInfo.value = await paragon.getUser();
+}
+
+async function getThreadsByAddress(address) {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  threads.value = await paragon.request('gmail', `gmail/v1/users/me/threads?maxResults=15&q=${encodeURIComponent(address)}`, {
+    method: "GET"
+  });
+}
 </script>
 
 <template>
-  <div>Testing...</div>
+  <div>
+    User ID:
+    <input type="text" v-model="userId" />
+  </div>
+  <div>
+    Private Key:
+    <textarea rows="8" placeholder="Generate in Paragon" v-model="privateKey" />
+  </div>
+  <button @click="generateUserToken" :disabled="!userId || !privateKey">Generate User Token</button>
+  <div>
+    User Token:
+    <input type="text" v-model="userToken" disabled />
+  </div>
+  <hr>
+  <div>
+    <button @click="connect('gmail')">Connect Gmail</button>
+    <button @click="connect('outlook')">Connect Outlook</button>
+  </div>
+  <hr>
+  <div>
+    <button @click="getUserInfo" :disabled="!userToken">Get User Info</button>
+    {{ userInfo }}
+  </div>
+  <hr>
+  <div>
+    <button @click="getThreadsByAddress('rmessenger@gmail.com')" :disabled="!userToken">Search threads</button>
+    {{ threads }}
+  </div>
+  <hr>
+  <div>
+    <button @click="disconnect('gmail')">Disconnect Gmail</button>
+    <button @click="disconnect('outlook')">Disconnect Outlook</button>
+  </div>
 </template>
 
 <style scoped>
