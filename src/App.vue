@@ -11,6 +11,8 @@ API References:
 const userInfo = ref(null);
 const userToken = ref(null);
 const threads = ref(null);
+const threadId = ref(null);
+const thread = ref(null);
 
 async function connect(service) {
   await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
@@ -39,6 +41,13 @@ async function getThreadsByAddress(address) {
     method: "GET"
   });
 }
+
+async function getThreadById(id) {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  thread.value = await paragon.request('gmail', `gmail/v1/users/me/threads/${id}`, {
+    method: "GET"
+  });
+}
 </script>
 
 <template>
@@ -60,6 +69,13 @@ async function getThreadsByAddress(address) {
   <div>
     <button @click="getThreadsByAddress('rmessenger@gmail.com')" :disabled="!userToken">Search threads</button>
     {{ threads }}
+  </div>
+  <hr>
+  <div>
+    Thread ID:
+    <input type="text" v-model="threadId" />
+    <button @click="getThreadById(threadId)" :disabled="!threadId">Get Single Thread By ID</button>
+    {{ thread }}
   </div>
   <hr>
   <div>
