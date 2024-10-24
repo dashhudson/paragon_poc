@@ -13,6 +13,9 @@ const userToken = ref(null);
 const threads = ref(null);
 const threadId = ref(null);
 const thread = ref(null);
+const sendTo = ref(null);
+const subject = ref(null);
+const body = ref(null);
 
 async function connect(service) {
   await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
@@ -48,6 +51,28 @@ async function getThreadById(id) {
     method: "GET"
   });
 }
+
+async function sendMessage(to, subject, body) {
+  await paragon.authenticate(import.meta.env.VITE_PARAGON_PROJECT_ID, userToken.value);
+  await paragon.request('gmail', `gmail/v1/users/me/messages/send`, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: {
+      raw: btoa(
+      `Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+to: ${to}
+from: robin.messenger@dashhudson.com
+subject: ${subject}
+
+${body}`
+      )
+    }
+  });
+}
 </script>
 
 <template>
@@ -69,6 +94,22 @@ async function getThreadById(id) {
   <div>
     <button @click="getThreadsByAddress('rmessenger@gmail.com')" :disabled="!userToken">Search threads</button>
     {{ threads }}
+  </div>
+  <hr>
+  <div>
+    To:
+    <input type="text" v-model="sendTo" />
+  </div>
+  <div>
+    Subject:
+    <input type="text" v-model="subject" />
+  </div>
+  <div>
+    Body:
+    <textarea v-model="body" />
+  </div>
+  <div>
+    <button @click="sendMessage(sendTo, subject, body)" :disabled="!sendTo || !subject || !body">Send</button>
   </div>
   <hr>
   <div>
